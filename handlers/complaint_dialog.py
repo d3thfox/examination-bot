@@ -20,8 +20,14 @@ async def start_complaint(message: types.Message , state: FSMContext):
 
 @complaint_router.message(ComplaintDialog.name)
 async def start_complaint(message: types.Message , state: FSMContext):
-    await state.update_data(name=message.text)
-    await message.answer("Введите ваш номер телефона ")
+    name = message.text
+    if message.isdigit():
+        await message.answer('Можно писать только буквами')
+        return
+    await state.update_data(name=name)
+    await message.answer(f"Введите ваш номер телефона\n"
+                         f"Вводите номер с регионом\n"
+                         f"Пример: 996111222333")
     await state.set_state(ComplaintDialog.contact)
 
 @complaint_router.message(ComplaintDialog.contact)
@@ -29,6 +35,9 @@ async def start_complaint(message: types.Message , state: FSMContext):
     contact = message.text
     if not contact.isdigit():
         await message.answer("Пишите цифрами")
+        return
+    if len(contact) > 12:
+        await message.answer('Вы не можете превышать 12 символов')
         return
     await state.update_data(contact=contact)
     await message.answer("Можете написать жалобу")
@@ -40,7 +49,8 @@ async def start_complaint(message: types.Message , state: FSMContext):
     await message.answer("Ваша жалоба принята")
     data = await state.get_data()
     database.insert_complaint(data)
-    await message.answer(f'Ваше имя {data["name"]},ваша жалоба {data["complaint"]}')
+    await message.answer(f'Ваше имя: {data["name"]}\n'
+                         f'Ваша жалоба: {data["complaint"]}')
 
     await state.clear()
 

@@ -1,7 +1,9 @@
 from aiogram import Router,types
 from aiogram.filters import Command
+from bot_conf import bot
 
 start_router = Router()
+name = bot.get_me()
 
 @start_router.message(Command("start"))
 async def start_handler(message: types.Message):
